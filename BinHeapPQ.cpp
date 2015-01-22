@@ -1,5 +1,5 @@
 /**
- * @file priorityQueue.cpp
+ * @file BinHeapPQ.cpp
  * @author MParolari
  *
  * @section DESCRIPTION
@@ -24,7 +24,7 @@ template <class T>
 class BinHeapPQ {
   pos_t maxSize;
   pos_t size;
-  PriorityItem<T>** heap; // array of pointer
+  PriorityItem<T>** heap; // array of pointers
   void swap(PriorityItem<T>* &, PriorityItem<T>* &);
   void upRestore(pos_t);
   void downRestore(pos_t);
@@ -50,7 +50,7 @@ template <class T>
 BinHeapPQ<T>::BinHeapPQ(pos_t maxSize) {
   this->maxSize = maxSize;
   size = 0;
-  heap = new PriorityItem<T>*[maxSize] {nullptr}; //TODO legal/usefull init?
+  heap = new PriorityItem<T>*[maxSize];
 }
 
 template <class T>
