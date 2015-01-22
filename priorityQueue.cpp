@@ -9,35 +9,35 @@
  * GNU GPLv2 - see LICENSE file
  */
 
-typedef unsigned int py_t; // priority type
-typedef unsigned short int pos_t; // position type, must be integer
+typedef unsigned int            py_t;  // priority type
+typedef unsigned short int      pos_t; // position type, must be integer
 
-template <class item_t>
+template <class T>
 struct PriorityItem {
   py_t priority;
-  item_t item;
+  T item;
   pos_t pos; // position in heap
 };
 
 // non-stable priority queue with static dimension
-template <class item_t>
-class PriorityQueue {
-  pos_t maxSize; //TODO access with a read-only reference is safer? // const pos_t& m = maxSize;
+template <class T>
+class BinHeapPQ {
+  pos_t maxSize;
   pos_t size;
-  PriorityItem<item_t>** heap; // array of pointer
-  void swap(PriorityItem<item_t>* &, PriorityItem<item_t>* &);
+  PriorityItem<T>** heap; // array of pointer
+  void swap(PriorityItem<T>* &, PriorityItem<T>* &);
   void upRestore(pos_t);
   void downRestore(pos_t);
 public:
-  PriorityQueue(pos_t);
-  ~PriorityQueue();
+  BinHeapPQ(pos_t);
+  ~BinHeapPQ();
   bool isEmpty();
   bool isFull();
-  item_t min(); // may throw an exception
+  T min(); // throw an exception if heap is empty
   //TODO is the item was deleted, the pointer is unsafe
-  const PriorityItem<item_t>* emplace(py_t, item_t);
-  void decrease(py_t, const PriorityItem<item_t>*);
-  void increase(py_t, const PriorityItem<item_t>*); 
+  const PriorityItem<T>* emplace(py_t, T);
+  void decrease(py_t, const PriorityItem<T>*);
+  void increase(py_t, const PriorityItem<T>*); 
   void deleteMin();
 };
 
@@ -46,15 +46,15 @@ public:
  *
  * @param maxSize The maximum size (number of items) you want to.
  */
-template <class item_t>
-PriorityQueue<item_t>::PriorityQueue(pos_t maxSize) {
+template <class T>
+BinHeapPQ<T>::BinHeapPQ(pos_t maxSize) {
   this->maxSize = maxSize;
   size = 0;
-  heap = new PriorityItem<item_t>*[maxSize] {nullptr}; //TODO legal/usefull init?
+  heap = new PriorityItem<T>*[maxSize] {nullptr}; //TODO legal/usefull init?
 }
 
-template <class item_t>
-PriorityQueue<item_t>::~PriorityQueue() {
+template <class T>
+BinHeapPQ<T>::~BinHeapPQ() {
   // de-allocate the dinamic heap
   for (pos_t i=0; i < size; i++)
     delete heap[i];
@@ -66,8 +66,8 @@ PriorityQueue<item_t>::~PriorityQueue() {
  *
  * @return True only if the current size is zero.
  */
-template <class item_t>
-bool PriorityQueue<item_t>::isEmpty() {
+template <class T>
+bool BinHeapPQ<T>::isEmpty() {
   return (size == 0);
 }
 
@@ -76,8 +76,8 @@ bool PriorityQueue<item_t>::isEmpty() {
  *
  * @return True only if the current size is the maximum size.
  */
-template <class item_t>
-bool PriorityQueue<item_t>::isFull() {
+template <class T>
+bool BinHeapPQ<T>::isFull() {
   return (size == maxSize);
 }
 
@@ -90,8 +90,8 @@ bool PriorityQueue<item_t>::isFull() {
  *
  * @return The (copy) value associated.
  */
-template <class item_t>
-item_t PriorityQueue<item_t>::min() {
+template <class T>
+T BinHeapPQ<T>::min() {
   if (size > 0)
     return heap[0]->item;
   throw("Empty priority queue!");
@@ -103,10 +103,10 @@ item_t PriorityQueue<item_t>::min() {
  * @param a The first.
  * @param b The second.
  */
-template <class item_t>
-void PriorityQueue<item_t>::swap(PriorityItem<item_t>* &a, PriorityItem<item_t>* &b) {
+template <class T>
+void BinHeapPQ<T>::swap(PriorityItem<T>* &a, PriorityItem<T>* &b) {
   pos_t a_pos = a->pos, b_pos = b->pos; // positions must be preserved (and updated)
-  PriorityItem<item_t>* tmp = a;
+  PriorityItem<T>* tmp = a;
   a = b;
   b = tmp;
   a->pos = a_pos;
@@ -126,8 +126,8 @@ void PriorityQueue<item_t>::swap(PriorityItem<item_t>* &a, PriorityItem<item_t>*
  *
  * @param i The position of item to check/restore.
  */
-template <class item_t>
-void PriorityQueue<item_t>::upRestore(pos_t i) {
+template <class T>
+void BinHeapPQ<T>::upRestore(pos_t i) {
   while (i > 0 && heap[i]->priority < heap[i/2]->priority) {
     swap(heap[i], heap[i/2]);
     i /= 2;
@@ -148,8 +148,8 @@ void PriorityQueue<item_t>::upRestore(pos_t i) {
  *
  * @param i The position of item to check/restore.
  */
-template <class item_t>
-void PriorityQueue<item_t>::downRestore(pos_t i) {
+template <class T>
+void BinHeapPQ<T>::downRestore(pos_t i) {
   while (i >= 0) { // condition for entering the loop
     pos_t min = i; // the position of the minimum item between (i) and his children
     if (2*i    < size)
@@ -173,11 +173,11 @@ void PriorityQueue<item_t>::downRestore(pos_t i) {
  * @param item The value of the new item.
  * @return A read-only pointer, for monitoring the item created.
  */
-template <class item_t>
-const PriorityItem<item_t>* PriorityQueue<item_t>::emplace(py_t priority, item_t item) {
+template <class T>
+const PriorityItem<T>* BinHeapPQ<T>::emplace(py_t priority, T item) {
   if (size >= maxSize)
     return nullptr; // if the queue if full, exit
-  PriorityItem<item_t>* newPriorityItem = new PriorityItem<item_t>{priority, item, size};
+  PriorityItem<T>* newPriorityItem = new PriorityItem<T>{priority, item, size};
   heap[size] = newPriorityItem; // temporary position
   size++;
   upRestore(size-1);
@@ -190,8 +190,8 @@ const PriorityItem<item_t>* PriorityQueue<item_t>::emplace(py_t priority, item_t
  * @param newPriority The new priority value of the item.
  * @param pi The read-only pointer of the item you want to modify.
  */
-template <class item_t>
-void PriorityQueue<item_t>::decrease(py_t newPriority, const PriorityItem<item_t>* pi) {
+template <class T>
+void BinHeapPQ<T>::decrease(py_t newPriority, const PriorityItem<T>* pi) {
   if (newPriority >= pi->priority)
     return; // if the newPriority isn't lesser then the current priority, nothing to do
   heap[pi->pos]->priority = newPriority;
@@ -204,8 +204,8 @@ void PriorityQueue<item_t>::decrease(py_t newPriority, const PriorityItem<item_t
  * @param newPriority The new priority value of the item.
  * @param pi The read-only pointer of the item you want to modify.
  */
-template <class item_t>
-void PriorityQueue<item_t>::increase(py_t newPriority, const PriorityItem<item_t>* pi) {
+template <class T>
+void BinHeapPQ<T>::increase(py_t newPriority, const PriorityItem<T>* pi) {
   if (newPriority <= pi->priority)
     return; // if the newPriority isn't greater then the current priority, nothing to do
   heap[pi->pos]->priority = newPriority;
@@ -215,8 +215,8 @@ void PriorityQueue<item_t>::increase(py_t newPriority, const PriorityItem<item_t
 /**
  * Function for delete the minimum priority item (and update the queue).
  */
-template <class item_t>
-void PriorityQueue<item_t>::deleteMin() {
+template <class T>
+void BinHeapPQ<T>::deleteMin() {
   if (size <= 0)
     return; // nothing to delete
   

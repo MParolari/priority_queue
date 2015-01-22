@@ -1,1 +1,1 @@
-# priority_queue
+Priority queue implemented in C++11
