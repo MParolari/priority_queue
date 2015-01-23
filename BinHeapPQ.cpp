@@ -10,31 +10,7 @@
  * GNU GPLv2 - see LICENSE file
  */
 
-/**
- * Type of priorities used, you can change it if you want a different range of values.
- */
-typedef unsigned int		py_t;
-/**
- * Type used for operation and iteration of array.
- * It must be unsigned integer; you can change it if you want store more element in the queue.
- */
-typedef unsigned short int	pos_t;
-
-/**
- * A "Priority Item" is an object stored in the priority queue.
- *
- * You haven't to create or manipulate them. It associates the value/item
- * stored with its priority and its position.
- * A "reference" (aka a const pointer) to a priority item is returned
- * when you emplace an item/value in the queue; you can use this pointer
- * for monitoring or referring to the priority item.
- */
-template <class T>
-struct PriorityItem {
-  py_t	priority; /**< Priority of this item.    */
-  T	item;     /**< The value of item stored. */
-  pos_t pos;      /**< Position in the queue.    */
-};
+#include "PriorityQueue.cpp"
 
 /**
  * Unstable priority queue, static dimension, implemented with a heap structure.
@@ -48,7 +24,7 @@ struct PriorityItem {
  * |------------------------------|
  */
 template <class T>
-class BinHeapPQ {
+class BinHeapPQ : public PriorityQueue<T> {
 private:
   pos_t maxSize;		/**< Max number of element stored in heap.     */
   pos_t size;			/**< Current size (number of element) of heap. */
